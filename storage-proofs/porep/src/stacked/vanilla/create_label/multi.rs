@@ -255,7 +255,7 @@ fn create_layer_labels(
             let base_parent_missing = &base_parent_missing;
 
             let core_index = if let Some(cg) = &*core_group {
-                cg.get(i + 1)
+                cg.get(i)
             } else {
                 None
             };
@@ -264,7 +264,7 @@ fn create_layer_labels(
                 // It will be logged as a warning by `bind_core`.
                 debug!("binding core in producer thread {}", i);
                 // When `_cleanup_handle` is dropped, the previous binding of thread will be restored.
-                let _cleanup_handle = core_index.map(|c| bind_core(*c));
+                let _cleanup_handle = core_index.map(|c| bind_core(*c, false));
 
                 create_label_runner(
                     parents_cache,
@@ -443,7 +443,7 @@ pub fn create_labels_for_encoding<Tree: 'static + MerkleTreeTrait, T: AsRef<[u8]
         // This could fail, but we will ignore the error if so.
         // It will be logged as a warning by `bind_core`.
         debug!("binding core in main thread");
-        group.get(0).map(|core_index| bind_core(*core_index))
+        group.get(0).map(|core_index| bind_core(*core_index, true))
     });
 
     // NOTE: this means we currently keep 2x sector size around, to improve speed
@@ -541,7 +541,7 @@ pub fn create_labels_for_decoding<Tree: 'static + MerkleTreeTrait, T: AsRef<[u8]
         // This could fail, but we will ignore the error if so.
         // It will be logged as a warning by `bind_core`.
         debug!("binding core in main thread");
-        group.get(0).map(|core_index| bind_core(*core_index))
+        group.get(0).map(|core_index| bind_core(*core_index, true))
     });
 
     // NOTE: this means we currently keep 2x sector size around, to improve speed

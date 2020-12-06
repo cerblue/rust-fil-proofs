@@ -75,7 +75,7 @@ impl Drop for Cleanup {
     }
 }
 
-pub fn bind_core(core_index: CoreIndex) -> Result<Cleanup> {
+pub fn bind_core(core_index: CoreIndex, first: bool) -> Result<Cleanup> {
     let child_topo = &TOPOLOGY;
     let tid = get_thread_id();
     let mut locked_topo = child_topo.lock().unwrap();
@@ -87,7 +87,8 @@ pub fn bind_core(core_index: CoreIndex) -> Result<Cleanup> {
         anyhow::format_err!("no cpuset for core at index {}", core_index.0,)
     })?;
     debug!("cpuset: {:?}", cpuset);
-    let mut bind_to = cpuset;
+
+    let mut bind_to = Bitmap::from(first ? cpuset.first() : cpuset.last()) as CpuSet;
 
     // Get only one logical processor (in case the core is SMT/hyper-threaded).
     bind_to.singlify();
