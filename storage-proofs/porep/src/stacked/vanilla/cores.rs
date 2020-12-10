@@ -2,7 +2,7 @@ use log::*;
 use std::sync::{Mutex, MutexGuard};
 
 use anyhow::Result;
-use hwloc2::{ObjectType, Topology, TopologyObject, CpuBindFlags};
+use hwloc2::{ObjectType, Topology, TopologyObject, CpuBindFlags, Bitmap, CpuSet};
 use lazy_static::lazy_static;
 
 use storage_proofs_core::settings;
@@ -88,7 +88,7 @@ pub fn bind_core(core_index: CoreIndex, first: bool) -> Result<Cleanup> {
     })?;
     debug!("cpuset: {:?}", cpuset);
 
-    let mut bind_to = Bitmap::from(first ? cpuset.first() : cpuset.last()) as CpuSet;
+    let mut bind_to = Bitmap::from(if first { cpuset.first() } else { cpuset.last() } as u32) as CpuSet;
 
     // Get only one logical processor (in case the core is SMT/hyper-threaded).
     bind_to.singlify();
