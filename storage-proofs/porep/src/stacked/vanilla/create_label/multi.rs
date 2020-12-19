@@ -254,17 +254,17 @@ fn create_layer_labels(
             let ring_buf = &ring_buf;
             let base_parent_missing = &base_parent_missing;
 
-            let core_index = if let Some(cg) = &*core_group {
-                cg.get(i)
+            let (bind_first, core_index) = if let Some(cg) = &*core_group {
+                (i >= cg.len(), cg.get(i % cg.len() + i / cg.len()))
             } else {
-                None
+                (false, None)
             };
             runners.push(s.spawn(move |_| {
                 // This could fail, but we will ignore the error if so.
                 // It will be logged as a warning by `bind_core`.
                 debug!("binding core in producer thread {}", i);
                 // When `_cleanup_handle` is dropped, the previous binding of thread will be restored.
-                let _cleanup_handle = core_index.map(|c| bind_core(*c, false));
+                let _cleanup_handle = core_index.map(|c| bind_core(*c, bind_first));
 
                 create_label_runner(
                     parents_cache,
